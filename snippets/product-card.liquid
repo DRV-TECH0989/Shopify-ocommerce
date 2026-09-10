@@ -114,59 +114,71 @@
         data-variant-id="{{ card_product.selected_or_first_available_variant.id }}"
         aria-label="Add {{ card_product.title | escape }} to cart"
       >
-        <span data-quick-add-label>Quick add</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span class="visually-hidden" data-quick-add-label>Quick add</span>
       </button>
     {% endunless %}
 
     <p class="product-card__quick-add-status" data-quick-add-status role="status" aria-live="polite" hidden></p>
-
-    {% if has_color_option %}
-      <div class="product-card__swatches" role="group" aria-label="Colour">
-        {% for value in color_values %}
-          {% if forloop.index0 < max_visible_swatches %}
-            {%- liquid
-              assign swatch_variant = nil
-              for variant in card_product.variants
-                if variant[color_option_key] == value and swatch_variant == nil
-                  assign swatch_variant = variant
-                endif
-              endfor
-              # Prefer an available variant in this colour if one exists,
-              # so the swatch doesn't default to a sold-out combination.
-              for variant in card_product.variants
-                if variant[color_option_key] == value and variant.available
-                  assign swatch_variant = variant
-                  break
-                endif
-              endfor
-            -%}
-            <button
-              type="button"
-              class="swatch{% if forloop.first %} swatch--selected{% endif %}{% unless swatch_variant.available %} swatch--unavailable{% endunless %}"
-              data-swatch
-              data-option-value="{{ value | escape }}"
-              data-variant-id="{{ swatch_variant.id }}"
-              data-variant-available="{{ swatch_variant.available }}"
-              data-variant-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 428 }}{% endif %}"
-              data-variant-price="{{ swatch_variant.price | money }}"
-              data-variant-compare-price="{{ swatch_variant.compare_at_price | money }}"
-              data-variant-has-compare="{% if swatch_variant.compare_at_price > swatch_variant.price %}true{% else %}false{% endif %}"
-              data-variant-url="{{ swatch_variant.url }}"
-              style="--swatch-color: {{ value | handle }};"
-              aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
-              aria-label="{{ value | escape }}{% unless swatch_variant.available %} (sold out){% endunless %}"
-              title="{{ value | escape }}"
-            ></button>
-          {% endif %}
-        {% endfor %}
-        {% if color_values.size > max_visible_swatches %}
-          <span class="swatch swatch--overflow" aria-label="{{ color_values.size | minus: max_visible_swatches }} more colours">
-            +{{ color_values.size | minus: max_visible_swatches }}
-          </span>
-        {% endif %}
-      </div>
-    {% endif %}
   </div>
+
+  {% comment %}
+    Swatches sit in their own row below the image, not overlaid on top
+    of it. The written brief says the swatch row "overlays the image,"
+    but the design reference shows swatches centered under the image,
+    ahead of the title — built to match the design per the assignment's
+    own rule that the file wins on disagreement. Flagged in README.
+  {% endcomment %}
+  {% if has_color_option %}
+    <div class="product-card__swatches" role="group" aria-label="Colour">
+      {% for value in color_values %}
+        {% if forloop.index0 < max_visible_swatches %}
+          {%- liquid
+            assign swatch_variant = nil
+            for variant in card_product.variants
+              if variant[color_option_key] == value and swatch_variant == nil
+                assign swatch_variant = variant
+              endif
+            endfor
+            # Prefer an available variant in this colour if one exists,
+            # so the swatch doesn't default to a sold-out combination.
+            for variant in card_product.variants
+              if variant[color_option_key] == value and variant.available
+                assign swatch_variant = variant
+                break
+              endif
+            endfor
+          -%}
+          <button
+            type="button"
+            class="swatch{% if forloop.first %} swatch--selected{% endif %}{% unless swatch_variant.available %} swatch--unavailable{% endunless %}"
+            data-swatch
+            data-option-value="{{ value | escape }}"
+            data-variant-id="{{ swatch_variant.id }}"
+            data-variant-available="{{ swatch_variant.available }}"
+            data-variant-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 428 }}{% endif %}"
+            data-variant-price="{{ swatch_variant.price | money }}"
+            data-variant-compare-price="{{ swatch_variant.compare_at_price | money }}"
+            data-variant-has-compare="{% if swatch_variant.compare_at_price > swatch_variant.price %}true{% else %}false{% endif %}"
+            data-variant-url="{{ swatch_variant.url }}"
+            style="--swatch-color: {{ value | handle }};"
+            aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-label="{{ value | escape }}{% unless swatch_variant.available %} (sold out){% endunless %}"
+            title="{{ value | escape }}"
+          ></button>
+        {% endif %}
+      {% endfor %}
+      {% if color_values.size > max_visible_swatches %}
+        <span class="swatch swatch--overflow" aria-label="{{ color_values.size | minus: max_visible_swatches }} more colours">
+          +{{ color_values.size | minus: max_visible_swatches }}
+        </span>
+      {% endif %}
+    </div>
+  {% endif %}
 
   <div class="product-card__info">
     {% if card_product.vendor != blank %}
