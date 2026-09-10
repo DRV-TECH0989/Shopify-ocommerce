@@ -1,0 +1,144 @@
+{{ 'section-drop-teaser.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign target = section.settings.countdown_datetime
+  assign zero_action = section.settings.zero_action
+-%}
+
+<section class="drop-teaser" id="DropTeaser-{{ section.id }}">
+  <div class="drop-teaser__panel drop-teaser__panel--left" style="--pattern-bg: url({{ section.settings.pattern_image | image_url: width: 800 }})">
+    {% if section.settings.headline != blank %}
+      <p class="drop-teaser__script-headline">{{ section.settings.headline }}</p>
+    {% endif %}
+
+    <div
+      class="countdown"
+      data-countdown
+      data-target="{{ target }}"
+      data-zero-action="{{ zero_action }}"
+      role="timer"
+      aria-live="polite"
+      aria-label="Time remaining until drop"
+    >
+      <div class="countdown__unit" data-unit="days">
+        <div class="countdown__digits">
+          <span class="countdown__digit" data-d1>0</span><span class="countdown__digit" data-d2>0</span>
+        </div>
+        <span class="countdown__label">{{ section.settings.label_days | default: 'Days' }}</span>
+      </div>
+      <div class="countdown__unit" data-unit="hours">
+        <div class="countdown__digits">
+          <span class="countdown__digit" data-d1>0</span><span class="countdown__digit" data-d2>0</span>
+        </div>
+        <span class="countdown__label">{{ section.settings.label_hours | default: 'Hours' }}</span>
+      </div>
+      <div class="countdown__unit" data-unit="minutes">
+        <div class="countdown__digits">
+          <span class="countdown__digit" data-d1>0</span><span class="countdown__digit" data-d2>0</span>
+        </div>
+        <span class="countdown__label">{{ section.settings.label_minutes | default: 'Minutes' }}</span>
+      </div>
+      <div class="countdown__unit" data-unit="seconds">
+        <div class="countdown__digits">
+          <span class="countdown__digit" data-d1>0</span><span class="countdown__digit" data-d2>0</span>
+        </div>
+        <span class="countdown__label">{{ section.settings.label_seconds | default: 'Seconds' }}</span>
+      </div>
+    </div>
+
+    <p class="countdown__ended-message" data-countdown-ended hidden>
+      {{ section.settings.ended_message | default: "It's here." }}
+    </p>
+  </div>
+
+  <div class="drop-teaser__panel drop-teaser__panel--right">
+    {% if section.settings.right_image %}
+      <img
+        src="{{ section.settings.right_image | image_url: width: 900 }}"
+        alt="{{ section.settings.right_image.alt | escape }}"
+        width="{{ section.settings.right_image.width }}"
+        height="{{ section.settings.right_image.height }}"
+        loading="lazy"
+        class="drop-teaser__right-image"
+      >
+    {% endif %}
+    {% if section.settings.right_caption != blank %}
+      <p class="drop-teaser__script-caption">{{ section.settings.right_caption }}</p>
+    {% endif %}
+
+    {% form 'customer', id: 'DropTeaserForm-' | append: section.id, class: 'drop-teaser__form' %}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      <label for="DropTeaserEmail-{{ section.id }}" class="visually-hidden">
+        {{ section.settings.email_placeholder | default: 'Email' }}
+      </label>
+      <input
+        type="email"
+        name="contact[email]"
+        id="DropTeaserEmail-{{ section.id }}"
+        placeholder="{{ section.settings.email_placeholder | default: 'Email' }}"
+        required
+        autocomplete="email"
+      >
+      <button type="submit" class="button drop-teaser__submit">
+        {{ section.settings.button_label | default: 'Get notified' }}
+      </button>
+
+      {% if form.posted_successfully? %}
+        <p class="drop-teaser__form-message drop-teaser__form-message--success" role="status" tabindex="-1" data-form-success>
+          {{ section.settings.success_message | default: "You're on the list." }}
+        </p>
+      {% elsif form.errors %}
+        <p class="drop-teaser__form-message drop-teaser__form-message--error" role="alert" tabindex="-1" data-form-error>
+          {{ section.settings.error_message | default: form.errors.messages['email'] | default: 'Something went wrong. Please try again.' }}
+        </p>
+      {% endif %}
+    {% endform %}
+  </div>
+</section>
+
+<script src="{{ 'drop-teaser.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Drop teaser",
+  "tag": "section",
+  "class": "shopify-section--drop-teaser",
+  "settings": [
+    { "type": "header", "content": "Left panel" },
+    { "type": "text", "id": "headline", "label": "Script headline", "default": "New drop coming soon" },
+    { "type": "image_picker", "id": "pattern_image", "label": "Background pattern" },
+    { "type": "text", "id": "countdown_datetime", "label": "Drop date & time", "info": "Format: YYYY-MM-DDTHH:MM (store timezone), e.g. 2026-12-01T09:00" },
+    { "type": "text", "id": "label_days", "label": "Days label", "default": "Days" },
+    { "type": "text", "id": "label_hours", "label": "Hours label", "default": "Hours" },
+    { "type": "text", "id": "label_minutes", "label": "Minutes label", "default": "Minutes" },
+    { "type": "text", "id": "label_seconds", "label": "Seconds label", "default": "Seconds" },
+    {
+      "type": "select",
+      "id": "zero_action",
+      "label": "When the countdown reaches zero",
+      "options": [
+        { "value": "message", "label": "Show a message, hide the timer" },
+        { "value": "freeze", "label": "Freeze the timer at 00:00:00:00" }
+      ],
+      "default": "message"
+    },
+    { "type": "text", "id": "ended_message", "label": "Message shown at zero", "default": "It's here." },
+    { "type": "header", "content": "Right panel" },
+    { "type": "image_picker", "id": "right_image", "label": "Image" },
+    {
+      "type": "text",
+      "id": "right_caption",
+      "label": "Script caption",
+      "default": "Sneak peak...",
+      "info": "Built exactly as shown in the design — note this reads 'peak' not 'peek'. Flagged in README as a likely typo; change here if it should read 'peek'."
+    },
+    { "type": "text", "id": "email_placeholder", "label": "Email field placeholder", "default": "Enter your email" },
+    { "type": "text", "id": "button_label", "label": "Submit button label", "default": "Notify me" },
+    { "type": "text", "id": "success_message", "label": "Success message", "default": "You're on the list." },
+    { "type": "text", "id": "error_message", "label": "Error message override" }
+  ],
+  "presets": [
+    { "name": "Drop teaser" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,135 @@
+{{ 'section-hero.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign heading_type = section.settings.heading_type
+  assign show_reviews = section.settings.show_reviews_tab
+-%}
+
+<section
+  class="hero"
+  {% if section.settings.background_image %}
+    style="--hero-bg-mobile: url({{ section.settings.background_image | image_url: width: 750 }}); --hero-bg-desktop: url({{ section.settings.background_image | image_url: width: 1440 }});"
+  {% endif %}
+  aria-label="{{ section.settings.heading_text | default: 'Hero' | strip_html }}"
+>
+  {% if section.settings.background_image %}
+    <img
+      class="hero__bg-img"
+      src="{{ section.settings.background_image | image_url: width: 1440 }}"
+      srcset="
+        {{ section.settings.background_image | image_url: width: 750 }} 750w,
+        {{ section.settings.background_image | image_url: width: 1100 }} 1100w,
+        {{ section.settings.background_image | image_url: width: 1440 }} 1440w,
+        {{ section.settings.background_image | image_url: width: 2000 }} 2000w
+      "
+      sizes="100vw"
+      alt=""
+      role="presentation"
+      width="{{ section.settings.background_image.width }}"
+      height="{{ section.settings.background_image.height }}"
+      loading="{% if section.index == 1 %}eager{% else %}lazy{% endif %}"
+      {% if section.index == 1 %}fetchpriority="high"{% endif %}
+    >
+  {% endif %}
+
+  <div class="hero__content page-width">
+    {% if heading_type == 'image' and section.settings.headline_image %}
+      <img
+        class="hero__headline-image"
+        src="{{ section.settings.headline_image | image_url: width: 900 }}"
+        alt="{{ section.settings.headline_image.alt | default: section.settings.headline_text | strip_html }}"
+        width="{{ section.settings.headline_image.width }}"
+        height="{{ section.settings.headline_image.height }}"
+        loading="lazy"
+      >
+    {% elsif section.settings.headline_text != blank %}
+      <h1 class="hero__headline">{{ section.settings.headline_text }}</h1>
+    {% endif %}
+
+    {% if section.settings.button_label != blank and section.settings.button_collection != blank %}
+      <a
+        href="{{ section.settings.button_collection.url }}"
+        class="button hero__cta"
+      >
+        {{ section.settings.button_label }}
+      </a>
+    {% endif %}
+  </div>
+
+  {% if show_reviews %}
+    <a href="{{ section.settings.reviews_link | default: '#reviews' }}" class="hero__reviews-tab">
+      <span>{{ section.settings.reviews_label | default: 'Reviews' }}</span>
+    </a>
+  {% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "section",
+  "class": "shopify-section--hero",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "select",
+      "id": "heading_type",
+      "label": "Headline type",
+      "options": [
+        { "value": "text", "label": "Text" },
+        { "value": "image", "label": "Image (logo lockup)" }
+      ],
+      "default": "text"
+    },
+    {
+      "type": "richtext",
+      "id": "headline_text",
+      "label": "Headline text",
+      "default": "<p>Spring Break</p>",
+      "info": "Used when headline type is Text. The stylized 'Spring&Break' lockup in the design is a custom logotype — use the Image option above with an exported PNG/SVG for pixel-perfect results instead of this text field."
+    },
+    {
+      "type": "image_picker",
+      "id": "headline_image",
+      "label": "Headline image",
+      "info": "Used when headline type is Image"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop the collection"
+    },
+    {
+      "type": "collection",
+      "id": "button_collection",
+      "label": "Button link (collection)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reviews_tab",
+      "label": "Show Reviews tab",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "reviews_label",
+      "label": "Reviews tab label",
+      "default": "Reviews"
+    },
+    {
+      "type": "url",
+      "id": "reviews_link",
+      "label": "Reviews tab link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero"
+    }
+  ]
+}
+{% endschema %}

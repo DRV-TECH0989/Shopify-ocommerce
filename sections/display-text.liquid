@@ -1,0 +1,96 @@
+{{ 'section-display-text.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign fill_type = section.settings.fill_type
+  assign text = section.settings.display_text | default: 'DISPLAY'
+-%}
+
+<section
+  class="display-text display-text--{{ fill_type }}"
+  data-fill-type="{{ fill_type }}"
+  {% if fill_type == 'image' and section.settings.fill_image != blank %}
+    style="--display-text-bg-image: url({{ section.settings.fill_image | image_url: width: 1600 }});"
+  {% elsif fill_type == 'video' %}
+    style="--display-text-mask-ref: url(#DisplayTextMask-{{ section.id }});"
+  {% endif %}
+>
+  <div class="display-text__stage">
+
+    {% if fill_type == 'video' and section.settings.fill_video != blank %}
+      <video
+        class="display-text__media"
+        autoplay
+        muted
+        loop
+        playsinline
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <source src="{{ section.settings.fill_video.sources.last.url }}" type="video/mp4">
+      </video>
+
+      <!-- Decorative mask geometry only. Purely presentational: mirrors the
+           real heading below so the video clips to the letterforms. It is
+           not the accessible copy of the text — that lives in the real
+           heading, which screen readers / translation tools read normally. -->
+      <svg class="display-text__mask-def" width="0" height="0" aria-hidden="true">
+        <mask id="DisplayTextMask-{{ section.id }}" maskUnits="objectBoundingBox">
+          <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="white">
+            {{ text | strip_html | escape }}
+          </text>
+        </mask>
+      </svg>
+    {% elsif fill_type == 'image' and section.settings.fill_image != blank %}
+      <img
+        class="display-text__media display-text__media--bg"
+        src="{{ section.settings.fill_image | image_url: width: 1600 }}"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        width="{{ section.settings.fill_image.width }}"
+        height="{{ section.settings.fill_image.height }}"
+      >
+    {% endif %}
+
+    <h2 class="display-text__heading">{{ text }}</h2>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Display text",
+  "tag": "section",
+  "class": "shopify-section--display-text",
+  "settings": [
+    {
+      "type": "text",
+      "id": "display_text",
+      "label": "Text",
+      "default": "Best sellers"
+    },
+    {
+      "type": "select",
+      "id": "fill_type",
+      "label": "Fill type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "fill_image",
+      "label": "Fill image"
+    },
+    {
+      "type": "video",
+      "id": "fill_video",
+      "label": "Fill video"
+    }
+  ],
+  "presets": [
+    { "name": "Display text" }
+  ]
+}
+{% endschema %}

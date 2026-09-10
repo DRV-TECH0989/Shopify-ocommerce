@@ -1,0 +1,196 @@
+{% comment %}
+  Renders a single product card. Accepts:
+  - product: a product object (required)
+  Usage: {% render 'product-card', product: product %}
+{% endcomment %}
+
+{%- if product == blank -%}
+  <div class="product-card product-card--placeholder">
+    <div class="product-card__media">
+      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    </div>
+    <div class="product-card__info">
+      <h3 class="product-card__title">Example product title</h3>
+      <p class="product-card__price">$00.00</p>
+    </div>
+  </div>
+{%- else -%}
+{%- liquid
+  assign card_product = product
+
+  # Find the color/colour option, if the product has one, case-insensitively.
+  assign color_option_index = -1
+  for option in card_product.options_with_values
+    assign downcased = option.name | downcase
+    if downcased == 'color' or downcased == 'colour'
+      assign color_option_index = forloop.index0
+    endif
+  endfor
+
+  assign has_color_option = false
+  if color_option_index > -1
+    assign has_color_option = true
+    assign color_values = card_product.options_with_values[color_option_index].values
+    assign color_option_position = color_option_index | plus: 1
+    assign color_option_key = 'option' | append: color_option_position
+  endif
+
+  assign max_visible_swatches = 6
+
+  assign is_sold_out = true
+  for variant in card_product.variants
+    if variant.available
+      assign is_sold_out = false
+    endif
+  endfor
+
+  assign has_compare_at = false
+  if card_product.compare_at_price > card_product.price
+    assign has_compare_at = true
+  endif
+
+  assign is_clearance = false
+  assign is_final_sale = false
+  if card_product.tags contains 'clearance'
+    assign is_clearance = true
+  endif
+  if card_product.tags contains 'final-sale'
+    assign is_final_sale = true
+  endif
+-%}
+
+<div
+  class="product-card{% if is_sold_out %} product-card--sold-out{% endif %}"
+  data-product-card
+  data-product-id="{{ card_product.id }}"
+>
+  <div class="product-card__media">
+    {% if card_product.featured_image %}
+      <img
+        class="product-card__image"
+        data-card-image
+        src="{{ card_product.featured_image | image_url: width: 428 }}"
+        srcset="
+          {{ card_product.featured_image | image_url: width: 214 }} 214w,
+          {{ card_product.featured_image | image_url: width: 428 }} 428w
+        "
+        sizes="214px"
+        alt="{{ card_product.featured_image.alt | default: card_product.title | escape }}"
+        width="214"
+        height="415"
+        loading="lazy"
+      >
+    {% else %}
+      <div class="product-card__image product-card__image--placeholder" aria-hidden="true">
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      </div>
+    {% endif %}
+
+    {% comment %} Badges — hidden Figma layers, shown per product data {% endcomment %}
+    <div class="product-card__badges">
+      {% comment %}
+        Badges can stack (e.g. a clearance item can also be sold out),
+        so these are independent rather than mutually exclusive.
+        TODO: confirm stacking order/visual priority against Figma —
+        if the design only ever shows one badge at a time, gate these
+        with elsif instead.
+      {% endcomment %}
+      {% if is_sold_out %}
+        <span class="badge badge--sold-out">Sold out</span>
+      {% endif %}
+      {% if is_clearance %}
+        <span class="badge badge--clearance">Clearance</span>
+      {% endif %}
+      {% if is_final_sale %}
+        <span class="badge badge--final-sale">Final sale</span>
+      {% endif %}
+    </div>
+
+    {% unless is_sold_out %}
+      <button
+        type="button"
+        class="product-card__quick-add"
+        data-quick-add
+        data-variant-id="{{ card_product.selected_or_first_available_variant.id }}"
+        aria-label="Add {{ card_product.title | escape }} to cart"
+      >
+        <span data-quick-add-label>Quick add</span>
+      </button>
+    {% endunless %}
+
+    <p class="product-card__quick-add-status" data-quick-add-status role="status" aria-live="polite" hidden></p>
+
+    {% if has_color_option %}
+      <div class="product-card__swatches" role="group" aria-label="Colour">
+        {% for value in color_values %}
+          {% if forloop.index0 < max_visible_swatches %}
+            {%- liquid
+              assign swatch_variant = nil
+              for variant in card_product.variants
+                if variant[color_option_key] == value and swatch_variant == nil
+                  assign swatch_variant = variant
+                endif
+              endfor
+              # Prefer an available variant in this colour if one exists,
+              # so the swatch doesn't default to a sold-out combination.
+              for variant in card_product.variants
+                if variant[color_option_key] == value and variant.available
+                  assign swatch_variant = variant
+                  break
+                endif
+              endfor
+            -%}
+            <button
+              type="button"
+              class="swatch{% if forloop.first %} swatch--selected{% endif %}{% unless swatch_variant.available %} swatch--unavailable{% endunless %}"
+              data-swatch
+              data-option-value="{{ value | escape }}"
+              data-variant-id="{{ swatch_variant.id }}"
+              data-variant-available="{{ swatch_variant.available }}"
+              data-variant-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 428 }}{% endif %}"
+              data-variant-price="{{ swatch_variant.price | money }}"
+              data-variant-compare-price="{{ swatch_variant.compare_at_price | money }}"
+              data-variant-has-compare="{% if swatch_variant.compare_at_price > swatch_variant.price %}true{% else %}false{% endif %}"
+              data-variant-url="{{ swatch_variant.url }}"
+              style="--swatch-color: {{ value | handle }};"
+              aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-label="{{ value | escape }}{% unless swatch_variant.available %} (sold out){% endunless %}"
+              title="{{ value | escape }}"
+            ></button>
+          {% endif %}
+        {% endfor %}
+        {% if color_values.size > max_visible_swatches %}
+          <span class="swatch swatch--overflow" aria-label="{{ color_values.size | minus: max_visible_swatches }} more colours">
+            +{{ color_values.size | minus: max_visible_swatches }}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="product-card__info">
+    {% if card_product.vendor != blank %}
+      <p class="product-card__vendor">{{ card_product.vendor }}</p>
+    {% endif %}
+
+    <h3 class="product-card__title">
+      <a href="{{ card_product.url }}">{{ card_product.title }}</a>
+    </h3>
+
+    {% if card_product.type != blank %}
+      <p class="product-card__subtitle">{{ card_product.type }}</p>
+    {% endif %}
+
+    <div class="product-card__price" data-card-price>
+      {% if has_compare_at %}
+        <span class="product-card__price--compare" data-compare-price>
+          {{ card_product.compare_at_price | money }}
+        </span>
+      {% endif %}
+      <span class="product-card__price--current{% if has_compare_at %} product-card__price--sale{% endif %}" data-current-price>
+        {{ card_product.price | money }}
+      </span>
+    </div>
+  </div>
+</div>
+{%- endif -%}

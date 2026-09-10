@@ -1,0 +1,153 @@
+/* Design ref: Figma "Test 1" > Drop teaser, 1440 x 567, two panels */
+
+.drop-teaser {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 39.4vw; /* ~567/1440 */
+}
+
+.drop-teaser__panel {
+  position: relative;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.drop-teaser__panel--left {
+  /* Dark maroon base + merchant-uploaded line-art pattern layered on top.
+     TODO: exact hex from Figma — eyedropper this directly, this is
+     eyeballed from the screenshot. Export the icon pattern (bikini/
+     flower/leaf outlines) from Figma as a tileable PNG or SVG and
+     upload it as the pattern image setting; --pattern-bg is already
+     wired up to render it. */
+  background-color: #3a1c14;
+  background-image: var(--pattern-bg);
+  background-size: cover;
+  background-position: center;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  color: #f5ece3;
+}
+
+.drop-teaser__script-headline,
+.drop-teaser__script-caption {
+  font-family: var(--font-script, Georgia, serif); /* TODO: exact Figma script font */
+  font-style: italic;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.countdown {
+  display: flex;
+  gap: 1rem;
+}
+
+.countdown__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.countdown__digits {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.countdown__digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.75rem;
+  background: #f5ece3;
+  color: #3a1c14;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  border-radius: 6px;
+}
+
+.countdown__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #f5ece3;
+  opacity: 0.85;
+}
+
+.drop-teaser__panel--right {
+  background: #faece2; /* pale pink/cream, eyeballed — TODO exact hex */
+  padding: 0;
+}
+
+.drop-teaser__right-image {
+  width: 100%;
+  height: 65%;
+  object-fit: cover;
+}
+
+.drop-teaser__script-caption {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  color: #fff;
+  margin: 0;
+}
+
+.drop-teaser__form {
+  display: flex;
+  gap: 0;
+  padding: 1rem 1.5rem;
+  flex-wrap: nowrap;
+}
+
+.drop-teaser__form input[type='email'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0;
+}
+
+.drop-teaser__submit {
+  background: transparent;
+  color: #3a1c14;
+  border: none;
+  border-bottom: 1px solid #3a1c14;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  padding: 0.5rem 0 0.5rem 1rem;
+}
+
+.drop-teaser__form-message {
+  width: 100%;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.drop-teaser__form-message--success {
+  color: var(--color-success, #146b3a);
+}
+
+.drop-teaser__form-message--error {
+  color: var(--color-error, #c0362c);
+}
+
+@media screen and (max-width: 749px) {
+  .drop-teaser {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .countdown {
+    gap: 0.5rem;
+  }
+  .countdown__digit {
+    width: 1.9rem;
+    height: 2.3rem;
+    font-size: 1.2rem;
+  }
+}

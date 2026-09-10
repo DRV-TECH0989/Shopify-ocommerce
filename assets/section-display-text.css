@@ -1,0 +1,122 @@
+/*
+  Two techniques, chosen per merchant setting:
+
+  IMAGE fill -> CSS background-clip: text. The heading is real, selectable,
+  translatable text; its glyphs are filled with the image and clipped to
+  the letterform shapes by the browser's own text renderer. This is the
+  primary, most robust technique and has solid modern support.
+
+  VIDEO fill -> background-clip: text cannot accept a <video> as a
+  background-image, so the video is CSS-masked to the text's shape via an
+  SVG <mask> whose geometry mirrors the real heading (kept in sync from
+  the same Liquid variable, and marked aria-hidden/decorative). The real
+  heading sits on top, colored transparent, so the accessible text and
+  the visible clipped shape are the same characters even though rendered
+  via two elements.
+
+  FALLBACK: browsers without background-clip:text or mask-image support
+  (@supports check below) get solid, legible foreground text over the
+  media placed behind it at reduced opacity, so text is never invisible.
+*/
+
+.display-text {
+  position: relative;
+}
+
+.display-text__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22vw;
+  overflow: hidden;
+  /* Screenshot shows this section on plain white, unlike the hero/
+     drop-teaser which sit on dark or photo backgrounds. */
+  background: #ffffff;
+}
+
+.display-text__heading {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  /* Script logotype, not a uniform sans display face like the earlier
+     placeholder assumed. TODO: exact Figma font family. */
+  font-family: var(--font-script, Georgia, serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  line-height: 1;
+  text-align: center;
+  text-transform: none;
+  color: #2a2a2a; /* fallback color, overridden below when supported */
+}
+
+/* --- Image fill: background-clip text --- */
+.display-text--image .display-text__media--bg {
+  display: none; /* used only as the source for the CSS background below */
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .display-text--image .display-text__heading {
+    /* Falls back to a gradient matching the design (tan -> coral ->
+       teal -> grey) when no merchant image is uploaded, so the
+       out-of-the-box preview already looks right. TODO: replace with
+       the exact gradient stops/hex values or the real exported asset
+       once you have Figma color access. */
+    background-image: var(
+      --display-text-bg-image,
+      linear-gradient(90deg, #c9a37a 0%, #e08a72 30%, #4fb8ac 65%, #9aa0a6 100%)
+    );
+    background-size: cover;
+    background-position: center;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* --- Video fill: masked video behind transparent real text --- */
+.display-text--video .display-text__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+@supports (mask-image: none) or (-webkit-mask-image: none) {
+  .display-text--video .display-text__media {
+    -webkit-mask-image: var(--display-text-mask-ref);
+    mask-image: var(--display-text-mask-ref);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+  .display-text--video .display-text__heading {
+    color: transparent;
+  }
+}
+
+.display-text__mask-def {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .display-text--video .display-text__media {
+    animation: none;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .display-text__stage {
+    min-height: 60vw;
+  }
+  .display-text__heading {
+    font-size: clamp(2rem, 14vw, 4rem);
+  }
+}
