@@ -110,16 +110,16 @@
             "panel_padding": 32,
             "heading_size": 36,
             "border_radius": 0,
-            "background_color": "#F3F3F3",
+            "background_color": "#f3f3f3",
             "text_color": "#121212",
-            "accent_color": "#334FB4",
-            "border_color": "#D9D9D9",
+            "accent_color": "#334fb4",
+            "border_color": "#d9d9d9",
             "timer_background": "#121212",
-            "timer_text_color": "#FFFFFF",
-            "image_placeholder_color": "#E5E5E5",
-            "input_background": "#FFFFFF",
+            "timer_text_color": "#ffffff",
+            "image_placeholder_color": "#e5e5e5",
+            "input_background": "#ffffff",
             "button_color": "#121212",
-            "button_text_color": "#FFFFFF"
+            "button_text_color": "#ffffff"
           },
           "blocks": {}
         }
@@ -128,12 +128,22 @@
         "ai_gen_block_e900925_btmKb8"
       ],
       "settings": {}
+    },
+    "product_grid_bBecRU": {
+      "type": "product-grid",
+      "name": "Product grid",
+      "settings": {
+        "heading": "",
+        "collection": "frontpage",
+        "products_to_show": 8
+      }
     }
   },
   "order": [
     "image_banner",
     "featured_collection",
     "hero_zjwUVb",
-    "1789061199f6b6dc6f"
+    "1789061199f6b6dc6f",
+    "product_grid_bBecRU"
   ]
 }
